@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title> Preprocessor </title><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="ie=edge"><link rel="shortcut icon" href="/favicon.1ce11279.ico" type="image/x-icon"><link rel="stylesheet" href="/init.0e0a4257.css"><link rel="stylesheet" href="/article.1d038faf.css"></head><body> <header id="top-container" role="navigation"> </header> <main id="main-container"> <article id="article-container"> <h1 id="article-title"> Preprocessor </h1> <h2 id="article-subtitle"> 전처리기 </h2> <time id="article-date"> 2020.01.19 </time> <section id="article-content-container"> <details><summary>Table of Contents</summary>
+<p><div class="table-of-contents"><ul><li><a href="#preprocessor">Preprocessor</a><ul><li><a href="#how-the-preprocessor-works">How the Preprocessor Works</a></li><li><a href="#macro-definition">Macro Definition</a><ul><li><a href="#simple-macros">Simple Macros</a></li><li><a href="#parameterized-macros">Parameterized Macros</a></li></ul></li><li><a href="#conditional-compilation">Conditional Compilation</a><ul><li><a href="#%60%23if%60-and-%60%23endif%60-directives">`#if` and `#endif` Directives</a></li></ul></li><li><a href="#miscellaneous-directives">Miscellaneous Directives</a><ul><li><a href="#%60%23error%60-directive">`#error` Directive</a></li><li><a href="#%60%23line%60-directive">`#line` Directive</a></li><li><a href="#%60%23pragma%60-directive">`#pragma` Directive</a></li></ul></li></ul></li></ul></div></p>
+</details>
+<h1 id="preprocessor">Preprocessor</h1>
+<h2 id="how-the-preprocessor-works">How the Preprocessor Works</h2>
+<p>preprocessor(전처리기)는 컴파일 과정 이전에 소스파일을 수정하는 프로그램이다. preprocessing directive는 <code>#</code> 문자로 시작하는 커맨드를 의미하는데, 전처리기는 이 문장들을 편집하는 역할을 한다.</p>
+<p>preprocessing directive는 크게 3가지 목록으로 나뉜다.</p>
+<ul>
+<li><strong>매크로 정의</strong> : <code>#define</code>은 macro를 정의한다. <code>#undef</code>는 그 매크로를 삭제한다.</li>
+<li><strong>파일 들여오기</strong> : <code>#include</code>는 전처리기가 특정한 파일을 가져와 소스파일에 붙이게 한다.</li>
+<li><strong>조건적 컴파일</strong> : <code>#if</code>, <code>#ifdef</code>, <code>#ifndef</code>등의 디렉티브들은 조건에 따라 텍스트를 프로그램 안으로 들여오거나 밖으로 내보내는 역할을 한다.</li>
+</ul>
+<h2 id="macro-definition">Macro Definition</h2>
+<h3 id="simple-macros">Simple Macros</h3>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> (identifier) (replacement_list)</span>
+</code></pre>
+<p><code>#define</code>을 통해 정의된 매크로는 전처리기에 의해 소스파일 내에서 나타나는 모든 identifier들을 replacement_list로 대체한다. 이는 다음과 같은 특징들을 가진다.</p>
+<ul>
+<li>프로그램의 가독성을 높일 수 있다.</li>
+<li>프로그램을 수정하기 쉽게 한다.</li>
+<li>오타로 인한 에러를 방지할 수 있다.</li>
+<li>자신만의 특별한 매크로를 통해 C 문법과 살짝 다르게 프로그램을 작성할 수 있다.</li>
+<li>타입을 다른 이름으로 작성할 수 있다.</li>
+</ul>
+<h3 id="parameterized-macros">Parameterized Macros</h3>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> (identifier(x1, x2, ..., xn)) (replacement_list)</span>
+</code></pre>
+<p>매개화된 매크로는 함수의 정의와 닮았다. 매크로에 들어온 파라미터들을 이용해 replacement_list를 작성할 수 있다.</p>
+<p>이 매크로는 변수 타입에 제한을 받지 않는다. 그래서 더욱 간편하게 코드를 작성할 수는 있지만 동시에 타입 체크가 안되기 때문에 불안정하다. 또한, 포인터 변수를 매크로 인자로 받을 수는 없다.</p>
+<p>매크로 인자를 replacement_list에 넣을 때는 <strong>반드시 인자를 괄호로 묶어야 한다.</strong> 매크로는 단순히 전처리기가 소스파일의 identifier를 치환하는 것이기 때문에 연산 순서가 예상과 달라질 수 있다.</p>
+<h4 id="%23-operator%2C-%23%23-operator"><code>#</code> Operator, <code>##</code> Operator</h4>
+<p>매개화된 매크로는 두 가지 특별한 연산자를 가진다. <code>#</code> 연산자는 매크로 인자를 스트링 리터럴로 바꿔준다.</p>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> PRINT_INT(n) printf(#n <span class="hljs-meta-string">&quot; = %d\n&quot;</span>, n)</span>
+<span class="hljs-keyword">int</span> i = <span class="hljs-number">10</span>;
+<span class="hljs-keyword">int</span> j =  <span class="hljs-number">2</span>;
+PRINT_INT(i/j);
+</code></pre>
+<p>예를 들어, 다음 프로그램을 컴파일 하면 전처리기가 <code>PRINT_INT</code>를 매크로를 따라 치환한다. 그럼 <code>#n</code>은 인자로 넘어온 <code>i/j</code>를 그대로 스트링 리터럴로 바꾸어 그 자리에 치환한다. 즉, <code>printf(&quot;i/j = %d\n&quot;, n)</code>과 같이 변하는 것이다. 서로 떨어진 두 스트링 리터럴은 자동적으로 컴파일러가 하나로 붙인다.</p>
+<p><code>##</code>연산자는 두 토큰을 붙여 하나의 토큰으로 만든다.</p>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> MK_ID(n) i##n</span>
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">MK_ID</span><span class="hljs-params">(<span class="hljs-number">1</span>)</span>, <span class="hljs-title">MK_ID</span><span class="hljs-params">(<span class="hljs-number">2</span>)</span></span>; <span class="hljs-comment">/* &lt;==&gt; int i1, i2; */</span>
+</code></pre>
+<p><code>i</code>와 <code>n</code>두 토큰을 붙여 하나로 만들었다. 만약 둘 사이에 <code>##</code> 연산자가 없다면 어떻게 될까?</p>
+<h4 id="predefined-macros">Predefined Macros</h4>
+<p>C는 미리 정의된 매크로를 몇 가지 지원한다. 이들은 컴파일 과정이나 컴파일러에 대한 정보를 지원해주는 역할을 한다.</p>
+<h2 id="conditional-compilation">Conditional Compilation</h2>
+<h3 id="%23if-and-%23endif-directives"><code>#if</code> and <code>#endif</code> Directives</h3>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">if</span> (const_exp)</span>
+(program_segment)
+<span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span></span>
+</code></pre>
+<p><code>#if</code>뒤에 오는 토큰의 값에 의해 전처리기가 <code>(program_segment)</code>를 제거할지 가만히 놔둘지 결정한다. 참일 경우 그대로 놔두고, 거짓일 경우 이 block을 통째로 없앤다. if 뒤에오는 표현식이 정의되지 않은 매크로일 경우, 그 값을 0으로 치환한다.</p>
+<h4 id="defined-operator"><code>defined</code> Operator</h4>
+<p><code>defined</code> 연산자는 전처리기에 의해 수행된다. 매크로가 이미 정의 되었는지, 혹은 그렇지 않은지를 검사한다.</p>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">if</span> defined(DEBUG) <span class="hljs-comment">/* or #if defined DEBUG */</span></span>
+...
+<span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span></span>
+</code></pre>
+<h4 id="%23ifdef-and-%23ifndef-directives"><code>#ifdef</code> and <code>#ifndef</code> Directives</h4>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">ifdef</span> (identifier)</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">if</span> defined (identifier)</span>
+</code></pre>
+<p>위의 두 디렉티브는 똑같은 의미이다. 즉, <code>#ifdef</code>는 <code>#if</code>와 <code>#defined</code>를 섞은 표현인 것이다.</p>
+<p><code>#ifndef</code>는 <code>#ifdef</code>의 부정이다. 앞에 <code>n</code>이 붙은 것이다. <code>#if !definced</code>와 같다.</p>
+<h4 id="%23elif-and-%23else-directives"><code>#elif</code> and <code>#else</code> Directives</h4>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">if</span> expr1</span>
+(Lines to be included <span class="hljs-keyword">if</span> expr1 is nonzero)
+<span class="hljs-meta">#<span class="hljs-meta-keyword">elif</span> expr2</span>
+(Lined to be included <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> expr2 is nonzero)
+<span class="hljs-meta">#<span class="hljs-meta-keyword">else</span></span>
+(Lines to be included <span class="hljs-keyword">if</span> both expr1 <span class="hljs-keyword">and</span> expr2 are zero)
+<span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span></span>
+</code></pre>
+<p>일반적인 <code>if</code>, <code>else if</code>, <code>else</code>와 문법이 동일하게 쓰인다. 마지막에 <code>#endif</code>를 적어야 함을 유의하자.</p>
+<h4 id="uses-of-conditional-compilations">Uses of Conditional Compilations</h4>
+<p>그럼 이러한 조건적 디렉티브를 왜 쓰이는가? 주로 쓰이는 이유는 조건적 컴파일, 즉 디버깅을 편하게 하기 위해서지만 그 밖에도 다른 응용 방법이 있다.</p>
+<ul>
+<li>여러 머신이나 OS에 portable한 프로그램을 쓸 때</li>
+<li>컴파일러 종류별로 서로 다른 프로그램을 작성할 때</li>
+<li>default macro를 작성할 때. 매크로의 정의가 이미 있는지 없는지를 통해 매크로를 정의할지 말지도 조건으로 나눌 수 있다.</li>
+<li>comment를 포함한 코드를 일시적으로 감출 때</li>
+</ul>
+<h2 id="miscellaneous-directives">Miscellaneous Directives</h2>
+<p>위에서 분류한 3가지 디렉티브 외에도 추가적인 것들이 몇 가지 더 있다. <code>#error</code>, <code>#line</code>, <code>#pragma</code>에 대해 간략하게 살펴보자.</p>
+<h3 id="%23error-directive"><code>#error</code> Directive</h3>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">error</span> message</span>
+</code></pre>
+<p>전처리기가 이 디렉티브를 마주쳤을 때 전처리기는 <code>message</code>를 출력하며 error를 낸다. 에러 메세지의 양식은 컴파일러마다 다를 수 있지만 보통 아래같은 형식이다.</p>
+<pre class="hljs"><code>Error directive: message
+(<span class="hljs-keyword">or</span>)
+<span class="hljs-meta">#<span class="hljs-meta-keyword">error</span> message</span>
+</code></pre>
+<p>조건 디렉티브랑 활용하면 에러를 처리할 때 유용할 것 같다.</p>
+<h3 id="%23line-directive"><code>#line</code> Directive</h3>
+<p>이미 정의된 매크로인 <code>__LINE__</code>과 <code>__FILE__</code>을 재정의한다.</p>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">line</span> n <span class="hljs-meta-string">&quot;file&quot;</span></span>
+</code></pre>
+<p><code>file</code>은 생략 가능하며 <code>n</code>은 새롭게 재정의할 line number이다. line값은 <code>__LINE__</code>에, file명은 <code>__FILE__</code>에 재정의된다.</p>
+<p>프로그램에 에러가 있을 경우 컴파일을 시도했을 때 에러가 뜬 line number가 나온다. 여기서 출력되는 line number는 전체 소스파일을 기준으로 위치를 계산하기 때문에 에러의 위치를 찾기 힘들 수 있다. 이 때 <code>#line</code>을 이용하면 이 디렉티브를 기준으로 line이 재정의되기 때문에 에러 위치를 더 찾기 쉬워진다.</p>
+<h3 id="%23pragma-directive"><code>#pragma</code> Directive</h3>
+<p><code>#pragma</code>는 컴파일러에게 특별한 행동을 요청한다. 보통 비정상적으로 큰 프로그램이나 혹은 특정 컴파일러의 capability를 이용할 때 쓰인다.</p>
+<pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> tokens</span>
+</code></pre>
+<p><code>#pragma</code>뒤에는 지시 사항을 전달하는 토큰 문자열이 오는데 이 토큰은 컴파일러 종류마다 다르다. 컴파일러는 토큰의 내용을 이해할 수 없을때는 명령을 단순히 무시하고 넘어간다.</p> </section> <section id="article-navigation"> </section> <section id="article-list-button-container"> <a href="/articles.html"> <div id="article-list-button">📚</div> </a> </section> </article> </main> <script defer src="/init.2ffd8e8b.js"></script> </body></html>
